@@ -7,6 +7,9 @@ demonstrates the core functionality of URL shortening and redirection without th
 persistent storage layer. The application allows users to create, delete, and retrieve short URLs, and track the number
 of times a short URL has been accessed.
 
+### Demo
+<img src="url_shortner_demo.png" alt="URL Shortner Demo">
+
 ## Features
 
 - **URL Shortening**: Generate short URLs with a random generated code for a URL, with an option to enter a custom code.

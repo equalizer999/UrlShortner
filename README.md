@@ -1,7 +1,6 @@
 # URL Shortener - CLI Application
-
+![.NET Action Workflow Result](https://github.com/antonybstack/UrlShortner/actions/workflows/test.yml/badge.svg)
 ## Overview
-
 This project is a proof of concept a URL Shortner service. It's a command-line application written in C# that
 demonstrates the core functionality of URL shortening and redirection without the need for an actual web service or
 persistent storage layer. The application allows users to create, delete, and retrieve short URLs, and track the number
@@ -11,16 +10,13 @@ of times a short URL has been accessed.
 <img src="url_shortner_demo.png" alt="URL Shortner Demo">
 
 ## Features
-
 - **URL Shortening**: Generate short URLs with a random generated code for a URL, with an option to enter a custom code.
 - **URL Retrieval**: Get the original long URL from an existing short URL.
 - **URL Deletion**: Delete short URLs from storage.
 - **Click Tracking**: Track the number of times a short URL has been accessed.
 
 ## Getting Started
-
 ### Running the application
-
 1. **Build and run the application**
    ```bash
    dotnet build
@@ -33,7 +29,6 @@ of times a short URL has been accessed.
     4. The application will execute the command and display the results
 
 ### Testing
-
    ```bash
    dotnet test
    ```

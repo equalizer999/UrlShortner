@@ -31,4 +31,16 @@ public interface IUrlService
     ///     Gets the number of clicks for a short URL.
     /// </summary>
     Result<int> GetClickCount(string shortUrl);
+
+    // Added new method
+    /// <summary>
+    ///     Exports the datastore to a json file.
+    /// </summary>
+    Result<bool> ExportDatastore(string filePath);
+
+    // Added new method
+    /// <summary>
+    ///     Imports the datastore from a json file.
+    /// </summary>
+    Result<bool> ImportDatastore(string filePath);
 }

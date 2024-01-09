@@ -23,6 +23,8 @@ public sealed class CommandManager : ICommandManager
             (DeleteShortUrlCommand, "Delete short URL"),
             (DeleteAllShortUrlsByLongUrlCommand, "Delete all short URLs associated to the original URL"),
             (GetClickCountCommand, "Get the click count of a short URL"),
+            (ExportDatastoreCommand, "Export datastore to json file"), // Added new command
+            (ImportDatastoreCommand, "Import datastore from json file"), // Added new command
             (ExitCommand, "Exit")
         );
 
@@ -133,6 +135,36 @@ public sealed class CommandManager : ICommandManager
             }
             Console.Write("Click count: ");
             Console.WriteLine(res.Value);
+        }
+    }
+
+    // Added new method
+    private void ExportDatastoreCommand()
+    {
+        if (TryGetUserInput("Enter a file path to export the datastore to a json file:", out var input))
+        {
+            var res = _urlService.ExportDatastore(input);
+            if (!res.IsSuccess)
+            {
+                Console.WriteLine(res.ErrorMessage);
+                return;
+            }
+            Console.WriteLine($"Datastore exported to {input}");
+        }
+    }
+
+    // Added new method
+    private void ImportDatastoreCommand()
+    {
+        if (TryGetUserInput("Enter a file path to import the datastore from a json file:", out var input))
+        {
+            var res = _urlService.ImportDatastore(input);
+            if (!res.IsSuccess)
+            {
+                Console.WriteLine(res.ErrorMessage);
+                return;
+            }
+            Console.WriteLine($"Datastore imported from {input}");
         }
     }
 

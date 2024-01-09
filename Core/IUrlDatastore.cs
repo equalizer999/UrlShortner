@@ -31,4 +31,16 @@ public interface IUrlDatastore
     ///     Checks if a short URL code is already in use.
     /// </summary>
     public bool IsShortUrlCodeInUse(string shortUrlCode);
+
+    // Added new method
+    /// <summary>
+    ///     Serializes the datastore to a json file.
+    /// </summary>
+    void ExportDatastore(string filePath);
+
+    // Added new method
+    /// <summary>
+    ///     Deserializes a json file and updates the datastore.
+    /// </summary>
+    void ImportDatastore(string filePath);
 }

@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.IO;
+using System.Net;
 using Core;
 
 namespace Services;
@@ -76,5 +77,45 @@ public sealed class UrlService(IUrlDatastore urlDatastore) : IUrlService
         return count is not -1
             ? count
             : Result<int>.Fail("URL is not recognized.");
+    }
+
+    // Added new method
+    public Result<bool> ExportDatastore(string filePath)
+    {
+        if (string.IsNullOrWhiteSpace(filePath))
+        {
+            return Result<bool>.Fail("File path cannot be empty.");
+        }
+        try
+        {
+            urlDatastore.ExportDatastore(filePath);
+            return Result<bool>.Success(true);
+        }
+        catch (Exception e)
+        {
+            return Result<bool>.Fail(e.Message);
+        }
+    }
+
+    // Added new method
+    public Result<bool> ImportDatastore(string filePath)
+    {
+        if (string.IsNullOrWhiteSpace(filePath))
+        {
+            return Result<bool>.Fail("File path cannot be empty.");
+        }
+        if (!File.Exists(filePath))
+        {
+            return Result<bool>.Fail("File does not exist.");
+        }
+        try
+        {
+            urlDatastore.ImportDatastore(filePath);
+            return Result<bool>.Success(true);
+        }
+        catch (Exception e)
+        {
+            return Result<bool>.Fail(e.Message);
+        }
     }
 }

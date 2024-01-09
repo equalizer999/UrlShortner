@@ -1,3 +1,6 @@
+using System.IO;
+using System.Text.Json;
+
 namespace Core.Tests;
 
 public sealed class UrlDatastoreTests
@@ -135,5 +138,42 @@ public sealed class UrlDatastoreTests
         }
         await Task.WhenAll(tasks);
         Assert.True(true);
+    }
+
+    // Added new test
+    [Fact]
+    public void ExportDatastore_WritesJsonFile_WhenFilePathIsValid()
+    {
+        var filePath = "test.json";
+        _urlDatastore.CreateShortUrlCode(TestUrl);
+        _urlDatastore.ExportDatastore(filePath);
+        Assert.True(File.Exists(filePath));
+        var json = File.ReadAllText(filePath);
+        var jsonFormat = JsonSerializer.Deserialize<UrlDatastoreJsonFormat>(json);
+        Assert.NotNull(jsonFormat);
+        Assert.Single(jsonFormat.LongToShortUrlMap);
+        Assert.Single(jsonFormat.ShortToLongUrlMap);
+        Assert.Single(jsonFormat.ShortUrlClickCountMap);
+        File.Delete(filePath);
+    }
+
+    // Added new test
+    [Fact]
+    public void ImportDatastore_UpdatesDatastore_WhenJsonFileIsValid()
+    {
+        var filePath = "test.json";
+        var jsonFormat = new UrlDatastoreJsonFormat
+        {
+            LongToShortUrlMap = new Dictionary<string, List<string>> { [TestUrl] = new List<string> { "abcd1234" } },
+            ShortToLongUrlMap = new Dictionary<string, string> { ["abcd1234"] = TestUrl },
+            ShortUrlClickCountMap = new Dictionary<string, int> { ["abcd1234"] = 42 }
+        };
+        var jsonOptions = new JsonSerializerOptions { WriteIndented = true };
+        var json = JsonSerializer.Serialize(jsonFormat, jsonOptions);
+        File.WriteAllText(filePath, json);
+        _urlDatastore.ImportDatastore(filePath);
+        Assert.Equal(TestUrl, _urlDatastore.GetOriginalUrl("abcd1234"));
+        Assert.Equal(42, _urlDatastore.GetClickCount("abcd1234"));
+        File.Delete(filePath);
     }
 }

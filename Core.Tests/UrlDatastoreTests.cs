@@ -1,7 +1,13 @@
+using System.Collections.Concurrent;
+using System.IO;
+using System.Text.Json;
+
 namespace Core.Tests;
 
 public sealed class UrlDatastoreTests
 {
+    private const string TestFilePath = "2024-01-01.json";
+
     private const string TestUrl = "https://www.adroit-tt.com";
     private readonly UrlDatastore _urlDatastore = new();
 
@@ -135,5 +141,14 @@ public sealed class UrlDatastoreTests
         }
         await Task.WhenAll(tasks);
         Assert.True(true);
+    }
+
+    [Fact]
+    public void ExportsDatastore_OperatesWithoutException_WhenRunAsync_TaskAsync()
+    {
+        var shortUrl1 = _urlDatastore.CreateShortUrlCode(TestUrl);
+        var shortUrl2 = _urlDatastore.CreateShortUrlCode(TestUrl);
+        var shortUrl3 = _urlDatastore.CreateShortUrlCode(TestUrl);
+        _urlDatastore.ExportDatastore(TestFilePath);
     }
 }

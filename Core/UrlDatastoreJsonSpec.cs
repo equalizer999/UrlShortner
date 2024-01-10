@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
@@ -12,7 +13,7 @@ public sealed class UrlDatastoreJsonSpec
     ///     A dictionary that maps long urls to a list of short url codes.
     /// </summary>
     [JsonPropertyName("longToShortUrlMap")]
-    public Dictionary<string, List<string>> LongToShortUrlMap { get; set; } = new();
+    public Dictionary<string, ConcurrentBag<string>> LongToShortUrlMap { get; set; } = new();
 
     /// <summary>
     ///     A dictionary that maps short url codes to long urls.

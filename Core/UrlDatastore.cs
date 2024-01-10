@@ -101,6 +101,45 @@ public sealed class UrlDatastore : IUrlDatastore
         return _shortToLongUrlMap.TryGetValue(shortUrlCode, out _);
     }
 
+    // Added new method
+    public void ExportDatastore(string filePath)
+    {
+        var jsonFormat = new UrlDatastoreJsonFormat
+        {
+            LongToShortUrlMap = new Dictionary<string, ConcurrentBag<string>>(_longToShortUrlMap),
+            ShortToLongUrlMap = new Dictionary<string, string>(_shortToLongUrlMap),
+            ShortUrlClickCountMap = new Dictionary<string, int>(_shortUrlClickCountMap)
+        };
+        var jsonOptions = new JsonSerializerOptions { WriteIndented = true };
+        var json = JsonSerializer.Serialize(jsonFormat, jsonOptions);
+        File.WriteAllText(filePath, json);
+    }
+
+    // Added new method
+    public void ImportDatastore(string filePath)
+    {
+        var json = File.ReadAllText(filePath);
+        var jsonFormat = JsonSerializer.Deserialize<UrlDatastoreJsonFormat>(json);
+        if (jsonFormat is not null)
+        {
+            _longToShortUrlMap.Clear();
+            _shortToLongUrlMap.Clear();
+            _shortUrlClickCountMap.Clear();
+            foreach (var (longUrl, shortUrls) in jsonFormat.LongToShortUrlMap)
+            {
+                _longToShortUrlMap.TryAdd(longUrl, new ConcurrentBag<string>(shortUrls));
+            }
+            foreach (var (shortUrl, longUrl) in jsonFormat.ShortToLongUrlMap)
+            {
+                _shortToLongUrlMap.TryAdd(shortUrl, longUrl);
+            }
+            foreach (var (shortUrl, clickCount) in jsonFormat.ShortUrlClickCountMap)
+            {
+                _shortUrlClickCountMap.TryAdd(shortUrl, clickCount);
+            }
+        }
+    }
+
     private event EventHandler<UrlClickEventArgs>? UrlClicked;
 
     /// <summary>

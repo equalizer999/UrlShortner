@@ -23,6 +23,8 @@ public sealed class CommandManager : ICommandManager
             (DeleteShortUrlCommand, "Delete short URL"),
             (DeleteAllShortUrlsByLongUrlCommand, "Delete all short URLs associated to the original URL"),
             (GetClickCountCommand, "Get the click count of a short URL"),
+            (ExportCommand, Directives.ExportCommand), // Pb100
+            (ImportCommand, Directives.ImportCommand), // Pe278
             (ExitCommand, "Exit")
         );
 
@@ -140,6 +142,28 @@ public sealed class CommandManager : ICommandManager
     {
         Console.WriteLine("Exiting...");
         Environment.Exit(0);
+    }
+
+    // P8487
+    private void ExportCommand()
+    {
+        var fileName = _urlService.ExportToJson();
+        Console.WriteLine($"Exported to file: {fileName}");
+    }
+
+    // P4c8a
+    private void ImportCommand()
+    {
+        if (TryGetUserInput("Enter the name of the JSON file to import:", out var input))
+        {
+            var res = _urlService.ImportFromJson(input);
+            if (!res.IsSuccess)
+            {
+                Console.WriteLine(res.ErrorMessage);
+                return;
+            }
+            Console.WriteLine($"Imported from file: {input}");
+        }
     }
 
     private static bool TryGetUserInput(string directive, out string input)

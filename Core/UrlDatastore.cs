@@ -1,4 +1,6 @@
 using System.Collections.Concurrent;
+using System.IO;
+using System.Text.Json;
 
 namespace Core;
 
@@ -121,5 +123,73 @@ public sealed class UrlDatastore : IUrlDatastore
         }
 
         internal string ShortUrl { get; }
+    }
+
+    // Pe9f6
+    /// <summary>
+    ///     Exports the current state of the datastore to a JSON file in the Client/Data directory.
+    /// </summary>
+    /// <returns>The name of the JSON file.</returns>
+    public string ExportToJson()
+    {
+        var data = new
+        {
+            LongToShortUrlMap = _longToShortUrlMap,
+            ShortToLongUrlMap = _shortToLongUrlMap,
+            ShortUrlClickCountMap = _shortUrlClickCountMap
+        };
+        var json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
+        var fileName = $"{DateTime.Now:yyyy-MM-dd-HH-mm-ss}.json";
+        var filePath = Path.Combine("Client", "Data", fileName);
+        File.WriteAllText(filePath, json);
+        return fileName;
+    }
+
+    // P9032
+    /// <summary>
+    ///     Imports the state of the datastore from a JSON file in the Client/Data directory.
+    /// </summary>
+    /// <param name="fileName">The name of the JSON file.</param>
+    /// <returns>True if the import was successful, false otherwise.</returns>
+    public bool ImportFromJson(string fileName)
+    {
+        var filePath = Path.Combine("Client", "Data", fileName);
+        if (!File.Exists(filePath))
+        {
+            return false;
+        }
+        var json = File.ReadAllText(filePath);
+        var data = JsonSerializer.Deserialize<UrlDatastoreData>(json);
+        if (data is null)
+        {
+            return false;
+        }
+        _longToShortUrlMap.Clear();
+        _shortToLongUrlMap.Clear();
+        _shortUrlClickCountMap.Clear();
+        foreach (var (longUrl, shortUrls) in data.LongToShortUrlMap)
+        {
+            _longToShortUrlMap.TryAdd(longUrl, new ConcurrentBag<string>(shortUrls));
+        }
+        foreach (var (shortUrl, longUrl) in data.ShortToLongUrlMap)
+        {
+            _shortToLongUrlMap.TryAdd(shortUrl, longUrl);
+        }
+        foreach (var (shortUrl, count) in data.ShortUrlClickCountMap)
+        {
+            _shortUrlClickCountMap.TryAdd(shortUrl, count);
+        }
+        return true;
+    }
+
+    // P9032
+    /// <summary>
+    ///     A class to represent the data of the datastore for JSON serialization and deserialization.
+    /// </summary>
+    private sealed class UrlDatastoreData
+    {
+        public Dictionary<string, List<string>> LongToShortUrlMap { get; set; } = new();
+        public Dictionary<string, string> ShortToLongUrlMap { get; set; } = new();
+        public Dictionary<string, int> ShortUrlClickCountMap { get; set; } = new();
     }
 }

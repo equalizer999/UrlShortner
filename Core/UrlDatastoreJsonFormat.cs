@@ -7,7 +7,7 @@ namespace Core;
 /// <summary>
 ///     Defines the json file format for the url datastore.
 /// </summary>
-public sealed class UrlDatastoreJsonSpec
+public sealed class UrlDatastoreJsonFormat
 {
     /// <summary>
     ///     A dictionary that maps long urls to a list of short url codes.

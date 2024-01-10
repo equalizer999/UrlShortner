@@ -77,4 +77,18 @@ public sealed class UrlService(IUrlDatastore urlDatastore) : IUrlService
             ? count
             : Result<int>.Fail("URL is not recognized.");
     }
+
+    public Result<bool> ExportDatastore(string filePath)
+    {
+        var res = urlDatastore.ExportDatastore(filePath);
+
+        return Result<bool>.Success(res);
+    }
+
+    public Result<bool> ImportDatastore(string filePath)
+    {
+        var res = urlDatastore.ImportDatastore(filePath);
+
+        return Result<bool>.Success(res);
+    }
 }

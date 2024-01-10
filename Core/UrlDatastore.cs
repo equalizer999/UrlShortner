@@ -1,4 +1,6 @@
 using System.Collections.Concurrent;
+using System.IO;
+using System.Text.Json;
 
 namespace Core;
 
@@ -121,5 +123,53 @@ public sealed class UrlDatastore : IUrlDatastore
         }
 
         internal string ShortUrl { get; }
+    }
+
+    /// <summary>
+    ///     Exports the datastore to a json file.
+    /// </summary>
+    /// <param name="filePath">The file path to save the json file.</param>
+    public void ExportDatastore(string filePath)
+    {
+        var jsonSpec = new UrlDatastoreJsonSpec
+        {
+            LongToShortUrlMap = new Dictionary<string, List<string>>(_longToShortUrlMap),
+            ShortToLongUrlMap = new Dictionary<string, string>(_shortToLongUrlMap),
+            ShortUrlClickCountMap = new Dictionary<string, int>(_shortUrlClickCountMap)
+        };
+        var jsonOptions = new JsonSerializerOptions
+        {
+            WriteIndented = true
+        };
+        var jsonString = JsonSerializer.Serialize(jsonSpec, jsonOptions);
+        File.WriteAllText(filePath, jsonString);
+    }
+
+    /// <summary>
+    ///     Imports the datastore from a json file.
+    /// </summary>
+    /// <param name="filePath">The file path to read the json file.</param>
+    public void ImportDatastore(string filePath)
+    {
+        var jsonString = File.ReadAllText(filePath);
+        var jsonSpec = JsonSerializer.Deserialize<UrlDatastoreJsonSpec>(jsonString);
+        if (jsonSpec is not null)
+        {
+            _longToShortUrlMap.Clear();
+            _shortToLongUrlMap.Clear();
+            _shortUrlClickCountMap.Clear();
+            foreach (var (longUrl, shortUrls) in jsonSpec.LongToShortUrlMap)
+            {
+                _longToShortUrlMap.TryAdd(longUrl, new ConcurrentBag<string>(shortUrls));
+            }
+            foreach (var (shortUrl, longUrl) in jsonSpec.ShortToLongUrlMap)
+            {
+                _shortToLongUrlMap.TryAdd(shortUrl, longUrl);
+            }
+            foreach (var (shortUrl, count) in jsonSpec.ShortUrlClickCountMap)
+            {
+                _shortUrlClickCountMap.TryAdd(shortUrl, count);
+            }
+        }
     }
 }

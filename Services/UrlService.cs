@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using Core;
+using System.Text.Json;
 
 namespace Services;
 
@@ -76,5 +77,48 @@ public sealed class UrlService(IUrlDatastore urlDatastore) : IUrlService
         return count is not -1
             ? count
             : Result<int>.Fail("URL is not recognized.");
+    }
+
+    public Result<string> ExportDatabase(string filePath)
+    {
+        try
+        {
+            var data = new
+            {
+                LongToShortUrlMap = urlDatastore.GetType().GetField("_longToShortUrlMap", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(urlDatastore),
+                ShortToLongUrlMap = urlDatastore.GetType().GetField("_shortToLongUrlMap", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(urlDatastore),
+                ShortUrlClickCountMap = urlDatastore.GetType().GetField("_shortUrlClickCountMap", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(urlDatastore)
+            };
+
+            var json = JsonSerializer.Serialize(data);
+            File.WriteAllText(filePath, json);
+            return Result<string>.Success(filePath);
+        }
+        catch (Exception ex)
+        {
+            return Result<string>.Fail($"Failed to export database: {ex.Message}");
+        }
+    }
+
+    public Result<string> ImportDatabase(string filePath)
+    {
+        try
+        {
+            var json = File.ReadAllText(filePath);
+            var data = JsonSerializer.Deserialize<dynamic>(json);
+
+            if (data != null)
+            {
+                urlDatastore.GetType().GetField("_longToShortUrlMap", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.SetValue(urlDatastore, data.LongToShortUrlMap);
+                urlDatastore.GetType().GetField("_shortToLongUrlMap", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.SetValue(urlDatastore, data.ShortToLongUrlMap);
+                urlDatastore.GetType().GetField("_shortUrlClickCountMap", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.SetValue(urlDatastore, data.ShortUrlClickCountMap);
+            }
+
+            return Result<string>.Success(filePath);
+        }
+        catch (Exception ex)
+        {
+            return Result<string>.Fail($"Failed to import database: {ex.Message}");
+        }
     }
 }

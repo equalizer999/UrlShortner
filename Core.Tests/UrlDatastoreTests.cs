@@ -136,4 +136,26 @@ public sealed class UrlDatastoreTests
         await Task.WhenAll(tasks);
         Assert.True(true);
     }
+
+    [Fact]
+    public void ExportDatabase_ExportsDatabaseToJsonFile()
+    {
+        var filePath = "test_export.json";
+        var result = _urlDatastore.ExportDatabase(filePath);
+        Assert.True(result.IsSuccess);
+        Assert.True(File.Exists(filePath));
+        File.Delete(filePath);
+    }
+
+    [Fact]
+    public void ImportDatabase_ImportsDatabaseFromJsonFile()
+    {
+        var filePath = "test_import.json";
+        var exportResult = _urlDatastore.ExportDatabase(filePath);
+        Assert.True(exportResult.IsSuccess);
+
+        var importResult = _urlDatastore.ImportDatabase(filePath);
+        Assert.True(importResult.IsSuccess);
+        File.Delete(filePath);
+    }
 }

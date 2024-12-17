@@ -23,6 +23,8 @@ public sealed class CommandManager : ICommandManager
             (DeleteShortUrlCommand, "Delete short URL"),
             (DeleteAllShortUrlsByLongUrlCommand, "Delete all short URLs associated to the original URL"),
             (GetClickCountCommand, "Get the click count of a short URL"),
+            (ExportDatabaseCommand, "Export database to JSON file"),
+            (ImportDatabaseCommand, "Import database from JSON file"),
             (ExitCommand, "Exit")
         );
 
@@ -133,6 +135,34 @@ public sealed class CommandManager : ICommandManager
             }
             Console.Write("Click count: ");
             Console.WriteLine(res.Value);
+        }
+    }
+
+    private void ExportDatabaseCommand()
+    {
+        if (TryGetUserInput("Enter a file path to export the database:", out var input))
+        {
+            var res = _urlService.ExportDatabase(input);
+            if (!res.IsSuccess)
+            {
+                Console.WriteLine(res.ErrorMessage);
+                return;
+            }
+            Console.WriteLine($"Database exported to: {res.Value}");
+        }
+    }
+
+    private void ImportDatabaseCommand()
+    {
+        if (TryGetUserInput("Enter a file path to import the database:", out var input))
+        {
+            var res = _urlService.ImportDatabase(input);
+            if (!res.IsSuccess)
+            {
+                Console.WriteLine(res.ErrorMessage);
+                return;
+            }
+            Console.WriteLine($"Database imported from: {res.Value}");
         }
     }
 

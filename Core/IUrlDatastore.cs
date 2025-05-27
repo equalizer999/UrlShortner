@@ -31,4 +31,15 @@ public interface IUrlDatastore
     ///     Checks if a short URL code is already in use.
     /// </summary>
     public bool IsShortUrlCodeInUse(string shortUrlCode);
+    
+    /// <summary>
+    ///     Exports the database to a JSON formatted string.
+    /// </summary>
+    string ExportDatabase();
+    
+    /// <summary>
+    ///     Imports the database from a JSON formatted string.
+    /// </summary>
+    /// <returns>True if import was successful, otherwise false.</returns>
+    bool ImportDatabase(string json);
 }

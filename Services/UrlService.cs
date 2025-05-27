@@ -77,4 +77,23 @@ public sealed class UrlService(IUrlDatastore urlDatastore) : IUrlService
             ? count
             : Result<int>.Fail("URL is not recognized.");
     }
+    
+    public Result<string> ExportDatabase()
+    {
+        var json = urlDatastore.ExportDatabase();
+        return Result<string>.Success(json);
+    }
+    
+    public Result<bool> ImportDatabase(string json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return Result<bool>.Fail("Import data cannot be empty.");
+        }
+        
+        var result = urlDatastore.ImportDatabase(json);
+        return result
+            ? Result<bool>.Success(true)
+            : Result<bool>.Fail("Failed to import database. The JSON format may be invalid.");
+    }
 }

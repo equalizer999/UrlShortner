@@ -96,6 +96,53 @@ public sealed class UrlDatastoreTests
         var result = _urlDatastore.IsShortUrlCodeInUse("nonexistent");
         Assert.False(result);
     }
+    
+    [Fact]
+    public void ExportDatabase_ReturnsNonEmptyString_WhenDatabaseIsEmpty()
+    {
+        var result = _urlDatastore.ExportDatabase();
+        Assert.NotEmpty(result);
+    }
+    
+    [Fact]
+    public void ExportDatabase_ContainsUrlData_WhenDatabaseHasEntries()
+    {
+        var shortUrl = _urlDatastore.CreateShortUrlCode(TestUrl);
+        _urlDatastore.GetOriginalUrl(shortUrl); // Simulate a click
+        var result = _urlDatastore.ExportDatabase();
+        
+        Assert.Contains(TestUrl, result);
+        Assert.Contains(shortUrl, result);
+    }
+    
+    [Fact]
+    public void ImportDatabase_ReturnsFalse_WhenJsonIsInvalid()
+    {
+        var result = _urlDatastore.ImportDatabase("invalid json");
+        Assert.False(result);
+    }
+    
+    [Fact]
+    public void ImportDatabase_ReplacesExistingData_WhenJsonIsValid()
+    {
+        // Create initial data
+        var shortUrl1 = _urlDatastore.CreateShortUrlCode(TestUrl);
+        _urlDatastore.GetOriginalUrl(shortUrl1); // Simulate a click
+        
+        // Export it
+        var exportedJson = _urlDatastore.ExportDatabase();
+        
+        // Create more data that should be removed after import
+        var shortUrl2 = _urlDatastore.CreateShortUrlCode("https://example.com");
+        
+        // Import the original export
+        var importResult = _urlDatastore.ImportDatabase(exportedJson);
+        Assert.True(importResult);
+        
+        // Verify the database state
+        Assert.Equal(TestUrl, _urlDatastore.GetOriginalUrl(shortUrl1));
+        Assert.Null(_urlDatastore.GetOriginalUrl(shortUrl2)); // Should be gone
+    }
 
     [Fact]
     public async Task CreateGetDeleteUrl_OperatesWithoutException_WhenRunAsync_TaskAsync()

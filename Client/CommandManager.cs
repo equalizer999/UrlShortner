@@ -23,6 +23,8 @@ public sealed class CommandManager : ICommandManager
             (DeleteShortUrlCommand, "Delete short URL"),
             (DeleteAllShortUrlsByLongUrlCommand, "Delete all short URLs associated to the original URL"),
             (GetClickCountCommand, "Get the click count of a short URL"),
+            (ExportDatabaseCommand, "Export database to JSON file"),
+            (ImportDatabaseCommand, "Import database from JSON file"),
             (ExitCommand, "Exit")
         );
 
@@ -133,6 +135,71 @@ public sealed class CommandManager : ICommandManager
             }
             Console.Write("Click count: ");
             Console.WriteLine(res.Value);
+        }
+    }
+    
+    private void ExportDatabaseCommand()
+    {
+        if (TryGetUserInput("Enter a file path to export the database to:", out var filePath))
+        {
+            var result = _urlService.ExportDatabase();
+            if (!result.IsSuccess)
+            {
+                Console.WriteLine(result.ErrorMessage);
+                return;
+            }
+            
+            try
+            {
+                File.WriteAllText(filePath, result.Value);
+                Console.WriteLine($"Database successfully exported to: {filePath}");
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                Console.WriteLine($"Access denied: {ex.Message}");
+            }
+            catch (DirectoryNotFoundException ex)
+            {
+                Console.WriteLine($"Directory not found: {ex.Message}");
+            }
+            catch (IOException ex)
+            {
+                Console.WriteLine($"I/O error when writing to file: {ex.Message}");
+            }
+        }
+    }
+    
+    private void ImportDatabaseCommand()
+    {
+        if (TryGetUserInput("Enter a file path to import the database from:", out var filePath))
+        {
+            if (!File.Exists(filePath))
+            {
+                Console.WriteLine($"File not found: {filePath}");
+                return;
+            }
+            
+            try
+            {
+                var json = File.ReadAllText(filePath);
+                var result = _urlService.ImportDatabase(json);
+                
+                if (!result.IsSuccess)
+                {
+                    Console.WriteLine(result.ErrorMessage);
+                    return;
+                }
+                
+                Console.WriteLine("Database successfully imported.");
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                Console.WriteLine($"Access denied: {ex.Message}");
+            }
+            catch (IOException ex)
+            {
+                Console.WriteLine($"I/O error when reading from file: {ex.Message}");
+            }
         }
     }
 

@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Text.Json;
 
 namespace Core;
 
@@ -98,6 +99,57 @@ public sealed class UrlDatastore : IUrlDatastore
     {
         return _shortToLongUrlMap.TryGetValue(shortUrlCode, out _);
     }
+    
+    public string ExportDatabase()
+    {
+        var database = new DatabaseExportModel
+        {
+            LongToShort = _longToShortUrlMap.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToArray()),
+            ShortToLong = _shortToLongUrlMap.ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
+            ClickCounts = _shortUrlClickCountMap.ToDictionary(kvp => kvp.Key, kvp => kvp.Value)
+        };
+        
+        return JsonSerializer.Serialize(database, new JsonSerializerOptions { WriteIndented = true });
+    }
+    
+    public bool ImportDatabase(string json)
+    {
+        try
+        {
+            var database = JsonSerializer.Deserialize<DatabaseExportModel>(json);
+            
+            if (database == null)
+                return false;
+                
+            // Clear existing data
+            _longToShortUrlMap.Clear();
+            _shortToLongUrlMap.Clear();
+            _shortUrlClickCountMap.Clear();
+            
+            // Import the data
+            foreach (var item in database.LongToShort)
+            {
+                var bag = new ConcurrentBag<string>(item.Value);
+                _longToShortUrlMap.TryAdd(item.Key, bag);
+            }
+            
+            foreach (var item in database.ShortToLong)
+            {
+                _shortToLongUrlMap.TryAdd(item.Key, item.Value);
+            }
+            
+            foreach (var item in database.ClickCounts)
+            {
+                _shortUrlClickCountMap.TryAdd(item.Key, item.Value);
+            }
+            
+            return true;
+        }
+        catch (JsonException)
+        {
+            return false;
+        }
+    }
 
     private event EventHandler<UrlClickEventArgs>? UrlClicked;
 
@@ -121,5 +173,15 @@ public sealed class UrlDatastore : IUrlDatastore
         }
 
         internal string ShortUrl { get; }
+    }
+    
+    /// <summary>
+    /// Model for exporting and importing database
+    /// </summary>
+    private sealed class DatabaseExportModel
+    {
+        public Dictionary<string, string[]> LongToShort { get; set; } = new();
+        public Dictionary<string, string> ShortToLong { get; set; } = new();
+        public Dictionary<string, int> ClickCounts { get; set; } = new();
     }
 }

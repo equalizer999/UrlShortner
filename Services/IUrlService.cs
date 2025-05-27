@@ -31,4 +31,14 @@ public interface IUrlService
     ///     Gets the number of clicks for a short URL.
     /// </summary>
     Result<int> GetClickCount(string shortUrl);
+    
+    /// <summary>
+    ///     Exports the database to a JSON formatted string.
+    /// </summary>
+    Result<string> ExportDatabase();
+    
+    /// <summary>
+    ///     Imports the database from a JSON formatted string.
+    /// </summary>
+    Result<bool> ImportDatabase(string json);
 }

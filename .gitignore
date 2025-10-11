@@ -498,3 +498,6 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# URL Shortener database exports
+urls_database.json
